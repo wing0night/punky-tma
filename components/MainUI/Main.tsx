@@ -20,6 +20,9 @@ import Right2 from "@/assets/icons/right2.svg";
 import PlayIcon from "@/assets/icons/play.svg";
 import { useRouter } from "next/navigation";
 import WalletIcon from "@/assets/icons/wallet.svg";
+import { Tooltip } from "@telegram-apps/telegram-ui";
+declare const window: any;
+
 
 export default function Main({
   switchTo,
@@ -31,6 +34,29 @@ export default function Main({
   const [currentFrames, setCurrentFrames] = useState<any[]>(punkyFrames); // Default frames
   const chatRef = useRef<any>(null); // 创建 ref
   const [viewHeight, setViewHeight] = useState(0);
+  const [walletAddress, setWalletAddress] = useState(null);
+  const imageRef = useRef<HTMLImageElement>(null); // 为 Image 元素创建一个 ref
+
+
+  // 检查 Phantom 是否安装
+  const isPhantomInstalled = () => {
+    return window.solana && window.solana.isPhantom;
+  };
+
+  // 连接钱包的方法
+  const connectWallet = async () => {
+    if (isPhantomInstalled()) {
+      try {
+        const resp = await window.solana.connect();
+        setWalletAddress(resp.publicKey.toString());
+        console.log('Connected to wallet:', resp.publicKey.toString());
+      } catch (err) {
+        console.error('User rejected the connection request');
+      }
+    } else {
+      alert('Please install Phantom wallet extension.');
+    }
+  };
 
   const handleSwipe = () => {
     const animations = [punkySitFrames, punkyRollFrames, punkyRunFrames];
@@ -97,12 +123,19 @@ export default function Main({
         />
       </div>
       <div className="flex justify-between mt-8">
+        {/* {walletAddress && (
+          <Tooltip content={walletAddress} targetRef={imageRef}>
+            <p>{walletAddress}</p>
+          </Tooltip>
+        )} */}
         <Image
           src={WalletIcon}
           width={40}
           height={40}
           alt="Feed"
           className="cursor-pointer"
+          ref={imageRef}
+          onClick={connectWallet}
         />
         <Image
           src={TOPlayIcon}
